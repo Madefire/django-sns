@@ -153,7 +153,7 @@ class Notification(models.Model):
         notification = Notification.objects.create(
                 messageId= message["MessageId"],
                 topicArn = message["TopicArn"],
-                subject = message["Subject"],
+                subject = message.get("Subject", message["Message"])[:100],
                 message = message["Message"],
                 timestamp = message["Timestamp"],
         )
