@@ -21,7 +21,7 @@ from models import Subscription, Notification
 
 @csrf_exempt
 def sns_endpoint(request):
-    message = json.loads(request.raw_post_data)
+    message = json.loads(request.body)
     if message['Type'] == 'SubscriptionConfirmation':
         sleep(5)
         obj = Subscription.process(message)
