@@ -19,6 +19,6 @@ setup(
         "Framework :: Django",
     ],
     include_package_data=True,
-    install_requires = ['Django>=1.4', 'South', 'boto'],
+    install_requires = ['Django>=1.4', 'boto'],
     zip_safe=False,
 )   
