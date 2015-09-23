@@ -51,7 +51,7 @@ class Subscription(models.Model):
     signature = models.TextField(null=True, blank=True)
     signingCertURL = models.URLField(max_length=512,null=True, blank=True)
     status = models.CharField(max_length= max(map(len, STATUSES)), choices= zip(STATUSES,map(lambda x: x.capitalize(), STATUSES)), default=STATUS_PENDING)
-    modified = models.DateTimeField(auto_now=True, auto_now_add=True)
+    modified = models.DateTimeField(auto_now=True)
     errors =  models.TextField(null=True, blank=True)
 
     def __unicode__(self):
@@ -143,7 +143,7 @@ class Notification(models.Model):
     message = models.TextField()
     timestamp  = models.DateTimeField()
     status = models.CharField(max_length= max(map(len, STATUSES)), choices= zip(STATUSES,map(lambda x: x.capitalize(), STATUSES)), default=STATUS_PENDING)
-    modified = models.DateTimeField(auto_now=True, auto_now_add=True)
+    modified = models.DateTimeField(auto_now=True)
     errors =  models.TextField(null=True, blank=True)
     def __unicode__(self):
         return "{}: {} ({}:{})".format(self.topicArn, self.subject,   self.status, self.modified)
