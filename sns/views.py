@@ -29,7 +29,7 @@ def sns_endpoint(request):
         obj= Notification.add(message)
     else:
         return HttpResponseBadRequest('Unknown Request')
-    return HttpResponse(json.dumps({'status': obj.status, 'message':message}), mimetype="application/json")
+    return HttpResponse(json.dumps({'status': obj.status, 'message':message}), content_type="application/json")
 
 
 @staff_member_required
@@ -39,4 +39,4 @@ def subscribe(request, topic):
                                         request.META['HTTP_HOST']))
     protocal, dev_null = browse_host.split('://')
     subscription = Subscription.subscribe(topic, protocal, browse_host)
-    return HttpResponse(subscription.message, mimetype="application/json")
+    return HttpResponse(subscription.message, content_type="application/json")
