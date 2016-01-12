@@ -3,6 +3,9 @@ django-sns
 
 django-sns
 
+requirements:
+M2Crypto (unfortunately does not work well with pip installation)
+
 setup:
 add "sns" to INSTALLED_APPS
 
