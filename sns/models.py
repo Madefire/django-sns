@@ -11,13 +11,12 @@ import datetime
 import json
 import logging
 import requests
-import traceback
 
 
 from django.conf import settings
 from django.core.urlresolvers import reverse
 from django.db import models
-from signals import sns_signal
+from .signals import sns_signal
 
 
 logger = logging.getLogger(__name__)
@@ -66,29 +65,25 @@ class Subscription(models.Model):
 
     @classmethod
     def process(cls, message):
-        subscription = None
+        topicArn = message['TopicArn']
+        topic = topicArn.split(':')[-1]
         try:
-            topicArn = message['TopicArn']
             subscription = Subscription.objects.get(topicArn=topicArn)
-            subscription.messageId = message["MessageId"]
-            subscription.token = message["Token"]
-            subscription.message = message["Message"]
-            subscription.subscribeURL = message["SubscribeURL"]
-            subscription.timestamp = message["Timestamp"]
-            subscription.signatureVersion = message["SignatureVersion"]
-            subscription.signature = message["Signature"]
-            subscription.signingCertURL = message["SigningCertURL"]
-            subscription.status = cls.STATUS_ACTIVE
-            requests.get(message['SubscribeURL'])
-            logger.info('GET SubscribeURL %s', message['SubscribeURL'])
-            subscription.save()
-        except:
-            if subscription:
-                subscription.status = cls.STATUS_RETIRED
-                subscription.error = traceback.format_exc()
-                subscription.save()
-            logger.exception("%s( %s )", cls.process, message)
-            raise
+        except Subscription.DoesNotExist:
+            subscription = Subscription(topicArn=topicArn)
+        subscription.topic = topic
+        subscription.messageId = message["MessageId"]
+        subscription.token = message["Token"]
+        subscription.message = message["Message"]
+        subscription.subscribeURL = message["SubscribeURL"]
+        subscription.timestamp = message["Timestamp"]
+        subscription.signatureVersion = message["SignatureVersion"]
+        subscription.signature = message["Signature"]
+        subscription.signingCertURL = message["SigningCertURL"]
+        subscription.status = cls.STATUS_ACTIVE
+        requests.get(message['SubscribeURL'])
+        logger.info('GET SubscribeURL %s', message['SubscribeURL'])
+        subscription.save()
         return subscription
 
     @classmethod
@@ -168,12 +163,13 @@ class Notification(models.Model):
 
     @classmethod
     def add(cls, message):
-        notification = Notification.objects.create(
-                messageId=message["MessageId"],
-                topicArn=message["TopicArn"],
-                subject=message.get("Subject", message["Message"])[:100],
-                message=message["Message"],
-                timestamp=message["Timestamp"],
-        )
-        sns_signal.send("ProcessNotificationSender", message=message)
+        if getattr(settings, 'SNS_SAVE_NOTIFICATIONS', True):
+            notification = Notification.objects.create(
+                    messageId=message["MessageId"],
+                    topicArn=message["TopicArn"],
+                    subject=message.get("Subject", message["Message"])[:100],
+                    message=message["Message"],
+                    timestamp=message["Timestamp"],
+            )
+        sns_signal.send(cls, message=message)
         return notification

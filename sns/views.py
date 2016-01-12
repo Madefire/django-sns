@@ -23,8 +23,8 @@ logger = logging.getLogger(__name__)
 @csrf_exempt
 @transaction.atomic
 def sns_endpoint(request):
+    msg_type = request.META.get('HTTP_X_AMZ_SNS_MESSAGE_TYPE')
     message = json.loads(request.body)
-    msg_type = message['Type']
     if msg_type == 'SubscriptionConfirmation':
         keys = (
             'Message',
@@ -36,6 +36,7 @@ def sns_endpoint(request):
             'Type',
         )
         if not verify_signature(keys, message):
+            logger.error('could not verify signature: message=%s', message)
             return HttpResponseBadRequest()
         obj = Subscription.process(message)
     elif msg_type == 'Notification':
@@ -49,6 +50,7 @@ def sns_endpoint(request):
             'Type',
         )
         if not verify_signature(keys, message):
+            logger.error('could not verify signature: message=%s', message)
             return HttpResponseBadRequest()
     else:
         logger.error('Unknown message type %s: message=%s', message['Type'], message)

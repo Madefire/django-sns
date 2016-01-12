@@ -2,8 +2,20 @@ import requests
 
 from M2Crypto import X509
 from base64 import b64decode
+import logging
+logger = logging.getLogger(__name__)
+
 
 certs = {}
+
+
+def get_string_to_sign(keys, message):
+    lines = []
+    for key in keys:
+        if key in message:
+            lines.append(key)
+            lines.append(message[key])
+    return str('\n'.join(lines) + '\n')
 
 
 def verify_signature(keys, message):
@@ -21,12 +33,7 @@ def verify_signature(keys, message):
     pub_key.verify_init()
 
     # create string to sign
-    lines = []
-    for key in keys:
-        if key in message:
-            lines.append(key)
-            lines.append(message[key])
-    str_to_sign = '\n'.join(lines)
-    pub_key.verify_update(str_to_sign.encode())
+    str_to_sign = get_string_to_sign(keys, message)
+    pub_key.verify_update(str_to_sign)
     result = pub_key.verify_final(b64decode(message['Signature']))
     return result == 1
