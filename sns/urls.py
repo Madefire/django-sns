@@ -1,7 +1,7 @@
-from django.conf.urls import patterns, url
+from django.conf.urls import url
+from sns.views import sns_endpoint, subscribe
 
-urlpatterns = patterns(
-    'sns.views',
-    url(r'^$', 'sns_endpoint', name='sns_endpoint'),
-    url(r'^subscribe/(?P<topic>[^/]+)/$', 'subscribe', name='subscribe'),
-)
+urlpatterns = [
+    url(r'^$', sns_endpoint, name='sns_endpoint'),
+    url(r'^subscribe/(?P<topic>[^/]+)/$', subscribe, name='subscribe'),
+]
